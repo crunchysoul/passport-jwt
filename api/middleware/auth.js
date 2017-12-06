@@ -1,6 +1,7 @@
 const passport = require("passport");
 const JWT = require("jsonwebtoken");
 const User = require("../models/User.js");
+const PassportJwt = require("passport-jwt");
 
 const jwtSecret = "n3xAXrwmMMCC4/Yfr2IMQhYBNN4nyac=";
 const jwtAlgorithm = "HS256";
@@ -30,6 +31,30 @@ function register(req, res, next) {
   });
 }
 
+passport.use(
+  new PassportJwt.Strategy(
+    {
+      jwtFromRequest: PassportJwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
+      secretOrKey: jwtSecret,
+      algorithms: [jwtAlgorithm]
+    },
+    (payload, done) => {
+      // find user by jwt from database
+      User.findById(payload.sub)
+        .then(user => {
+          if (user) {
+            done(null, user);
+          } else {
+            done(null, false);
+          }
+        })
+        .catch(error => {
+          done(error, false);
+        });
+    }
+  )
+);
+
 function signJWTForUser(req, res) {
   // Get the user (sign in or up)
   const user = req.user;
@@ -53,8 +78,9 @@ function signJWTForUser(req, res) {
 }
 
 module.exports = {
-  // initialize: passport.initialize(),
+  initialize: passport.initialize(),
   register,
   signIn: passport.authenticate("local", { session: false }),
+  requireJWT: passport.authenticate("jwt", { session: false }),
   signJWTForUser
 };
