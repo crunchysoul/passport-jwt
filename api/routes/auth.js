@@ -12,12 +12,7 @@ router.post(
   // middleware
   authMiddleware.register,
   // can have extra middleware,
-  // json handler
-  (req, res) => {
-    res.json({
-      user: req.user
-    });
-  }
+  authMiddleware.signJWTForUser
 );
 
 // Register
@@ -29,12 +24,7 @@ router.post(
   // middleware
   authMiddleware.signIn,
   // can have extra middleware,
-  // json handler
-  (req, res) => {
-    res.json({
-      user: req.user
-    });
-  }
+  authMiddleware.signJWTForUser
 );
 
 module.exports = router;
